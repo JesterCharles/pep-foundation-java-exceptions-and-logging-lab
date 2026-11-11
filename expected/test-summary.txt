@@ -1,0 +1,25 @@
+Expected output when every task is complete
+
+Test command, run in starter/:
+  mvn -q -o test
+
+Terminal: no output, and the command exits with status 0.
+Quiet mode (-q) prints only problems, so silence means every test passed.
+
+Test report, starter/target/surefire-reports/importer.StockImporterTest.txt, begins:
+  Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
+
+Program output, from java -cp target/classes importer.StockImporter run in starter/ after the tests:
+  tea=5 mug=9 pen=14
+  errors=2
+    line 3: count is not a number
+    line 5: expected sku,count
+then the three log records from logSummary - each is two lines, a timestamp
+line naming importer.StockImporter logSummary and the record itself (your
+timestamps will differ):
+  INFO: imported 3 skus from stock.csv
+  WARNING: line 3: count is not a number
+  WARNING: line 5: expected sku,count
+and finally:
+  outcome ok: ok
+  outcome bad: import error: line 1: count is not a number
