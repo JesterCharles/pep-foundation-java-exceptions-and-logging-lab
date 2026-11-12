@@ -81,7 +81,12 @@ The tests feed the importer good and broken data, and check only the visible res
 2. A line without exactly one comma, or with nothing before the comma, fails with `new ImportException("line " + lineNumber + ": expected sku,count")`.
 3. Parse the count with `Integer.parseInt`. Catch the `NumberFormatException` it throws for `"abc"`, and wrap it: `throw new ImportException("line " + lineNumber + ": count is not a number", cause)`.
    Never swallow the cause: when an import fails at 3 a.m., the stack trace's `Caused by:` line is what finds the bad file.
-4. If the compiler reports `unreported exception ImportException; must be caught or declared to be thrown`, the checked exception is doing its job. Either catch it (Task 3) or declare `throws ImportException` (Task 2).
+
+<details><summary>Hint</summary>
+
+If the compiler reports `unreported exception ImportException; must be caught or declared to be thrown`, the checked exception is doing its job. Either catch it (Task 3) or declare `throws ImportException` (Task 2).
+
+</details>
 
 ### Task 3: import everything that can be imported
 
@@ -97,7 +102,12 @@ The tests feed the importer good and broken data, and check only the visible res
 
 1. Implement `outcome(ImportAction action)` with one try and three catch blocks, most specific first: `ImportException`, then `NumberFormatException`, then `Exception`. Return the exact texts the comment shows.
 2. Try reversing the order. The compiler rejects a chain with the broad `Exception` first, because the narrower catches below it could never run. That compiler error is the ordering rule being enforced.
-3. If you see `exception ImportException is never thrown in body of corresponding try statement`, the compiler is tracking checked exceptions. That catch block can only exist where some call in the try declares `throws ImportException`.
+
+<details><summary>Hint</summary>
+
+If you see `exception ImportException is never thrown in body of corresponding try statement`, the compiler is tracking checked exceptions. That catch block can only exist where some call in the try declares `throws ImportException`.
+
+</details>
 
 ### Task 5: log it right
 
