@@ -1,165 +1,157 @@
 # Exceptions and Logging lab: a resilient stock importer
 
-## Goal
+A shop receives stock files with lines like `tea,3`, and real files arrive broken: counts that are not numbers, and lines without a comma.
+You make the stock importer survive them, in five linked tasks in the package `importer`. When you finish, it:
+- imports every good line;
+- reports every bad line with its line number;
+- closes the file on every path;
+- tells different failures apart;
+- logs what it did at the right levels.
 
-Make a stock-file importer survive real-world data, in five linked tasks in the package `importer`.
-The shop receives files with lines like `tea,3` - and real files arrive broken: counts that are not numbers, lines without a comma.
-Your importer imports every good line, reports every bad one with its line number, closes the file on every path, tells different failures apart, and logs what it did on the right levels.
-You practise custom exceptions, wrapping causes, try-with-resources, catch ordering and logging on one coherent failure story.
-You build and test it with the real JDK and Maven on your own computer.
+You practise custom exceptions, wrapping causes, try-with-resources, catch ordering and logging.
 
-## Files
+## Quick start
 
-**Edit exactly two files.** Every `TODO` comment marks its task; the test failure lines carry the same task numbers:
+The lab needs JDK 25 and Apache Maven 3.9 or later in the terminal. Troubleshooting shows how to check.
 
-- `starter/src/main/java/importer/ImportException.java` - Task 1: the importer's own checked exception
-- `starter/src/main/java/importer/StockImporter.java` - Tasks 2-5: parsing, resilience, failure classification and logging
+1. Open the lab project you were given in VS Code, then open its integrated terminal: **Terminal > New Terminal**.
+2. Go into the project folder. Every command in this lab runs there:
 
-**Do not change anything else.** In particular:
+   ```
+   cd starter
+   ```
 
-- `fixtures/stock.csv` - the broken sample file the importer must survive, exactly as shipped
-- `tests/importer/StockImporterTest.java` - the public tests your importer must pass
-- `starter/pom.xml` - the build is prewired
-- `expected/test-summary.txt` - the finished-state reference
+3. Before the first test run, download the lab's libraries once. This needs the internet, and prints nothing when it works:
 
-## Prerequisites
+   ```
+   mvn -q dependency:go-offline
+   ```
 
-You need JDK 25 and Apache Maven 3.9 or later, the same setup as the earlier Java labs.
-Check both in a new terminal:
+4. Run the tests before you change anything:
 
-```
-java -version
-mvn -v
-```
+   ```
+   mvn -q -o test
+   ```
 
-- `java -version` must report version 25.
-- `mvn -v` must report Apache Maven 3.9 or later, and its `Java version:` line must also say 25.
-
-This lab works the same on macOS, Linux and Windows.
-On Windows, use PowerShell or Command Prompt; the commands are the same.
-No Docker or other container tool is needed.
-
-## Setup (once, needs the internet)
-
-Open a terminal in the lab's root folder - the one that holds this README, `starter/` and `tests/` - and change into `starter` with `cd starter`; every command in this lab runs there. Then run:
+   **All 5 tests fail at first. That is expected: the TODOs are not done yet.**
+   The output ends with `Tests run: 5, Failures: 5`, and every failure line starts with its task number, such as `Task 1:`.
+5. Work through the checklist below in order. After each task, run `mvn -q -o test` again and read the remaining `Task N:` lines.
+6. **You are finished when `mvn -q -o test` prints nothing at all.**
 
 ```
-mvn -q dependency:go-offline
+OPEN project -> cd starter -> setup (once) -> RUN tests: 5 fail (expected)
+  -> READ the "Task N:" lines -> EDIT the next TODO -> RUN tests again
+  -> repeat for Tasks 1-5 -> STOP when the test run prints nothing
 ```
 
-It prints nothing when it succeeds.
-If you finished an earlier Java lab on this machine, it finds everything already downloaded.
-After this step, everything else in the lab runs offline.
+In words: open the project, run the tests, read which tasks fail, complete one task's TODO, run the tests again, and stop when they print nothing.
 
-## Tasks
+## Checklist
 
-Open the lab's root folder in your IDE or editor; it holds one Maven project, `starter/pom.xml`, and if your editor asks, open or import that file as a Maven project, then open `starter/src/main/java/importer/ImportException.java` and `StockImporter.java`. Whatever your editor shows, the test command below, run in a terminal in `starter`, is the result that counts.
-The broken sample file the importer must survive is `fixtures/stock.csv` - read it first; lines 3 and 5 are the troublemakers.
-The tests feed the importer good and broken data and check only the visible results.
+The files are in `starter/src/main/java/importer/`, and each task is marked with a `TODO` comment:
 
-After each task, run the one test command from the `starter` folder:
+- [ ] Task 1: `ImportException.java`, both constructors (a checked exception of your own)
+- [ ] Task 2: `StockImporter.java`, `parseCount` (throwing and wrapping exceptions)
+- [ ] Task 3: `StockImporter.java`, `importLines` and `importFile` (try/catch in a loop, try-with-resources)
+- [ ] Task 4: `StockImporter.java`, `outcome` (catch order)
+- [ ] Task 5: `StockImporter.java`, `logSummary` and `logCrash` (logging levels)
+- [ ] Optional, after the tests pass: read one stack trace on purpose
 
-```
-mvn -q -o test
-```
+A task is done when no failure line starts with its number.
+Edit only `ImportException.java` and `StockImporter.java`.
+- `fixtures/stock.csv` is the broken sample file the importer must survive, exactly as shipped.
+- The tests in `tests/importer/`, the build file `starter/pom.xml` and `expected/test-summary.txt` stay as they are.
 
-Every failure line starts with its task number, so you can work through the tasks in order.
+## Task steps
+
+Read `fixtures/stock.csv` first: lines 3 and 5 are the broken ones.
+The tests feed the importer good and broken data, and check only the visible results.
 
 ### Task 1: the importer's own exception
 
-1. Open `ImportException.java`. It extends `Exception`, so it is checked: a broken stock file is an expected failure every caller must plan for - the compiler enforces that plan. An unchecked `RuntimeException` would be the choice for programming errors instead.
-2. Complete both constructors: `super(message)` in the first, `super(message, cause)` in the second. The second keeps the low-level exception alive for every later stack trace.
+1. Open `ImportException.java`. It extends `Exception`, so it is a checked exception.
+   A broken stock file is an expected failure, and the compiler makes every caller plan for it. An unchecked `RuntimeException` is the choice for programming errors instead.
+2. Complete both constructors: `super(message)` in the first, `super(message, cause)` in the second.
+   The second keeps the low-level exception, so it appears in every later stack trace.
 3. While it is wrong, you see lines such as `Task 1: the message constructor must hand the message to super(...)`.
-4. Done when no line starting with `Task 1` appears.
 
 ### Task 2: parse one line, wrap what breaks
 
 1. In `StockImporter.java`, find `parseCount(String line, int lineNumber)`.
-2. A line without exactly one comma, or with nothing before it, fails with `new ImportException("line " + lineNumber + ": expected sku,count")`.
-3. Parse the count with `Integer.parseInt`. Catch the `NumberFormatException` it throws for `"abc"` and wrap it: `throw new ImportException("line " + lineNumber + ": count is not a number", cause)`.
-   Never swallow the cause - when this import fails at 3 a.m., the stack trace's `Caused by:` line is what finds the bad file.
-4. Done when no line starting with `Task 2` appears.
+2. A line without exactly one comma, or with nothing before the comma, fails with `new ImportException("line " + lineNumber + ": expected sku,count")`.
+3. Parse the count with `Integer.parseInt`. Catch the `NumberFormatException` it throws for `"abc"`, and wrap it: `throw new ImportException("line " + lineNumber + ": count is not a number", cause)`.
+   Never swallow the cause: when an import fails at 3 a.m., the stack trace's `Caused by:` line is what finds the bad file.
+4. If the compiler reports `unreported exception ImportException; must be caught or declared to be thrown`, the checked exception is doing its job. Either catch it (Task 3) or declare `throws ImportException` (Task 2).
 
 ### Task 3: import everything that can be imported
 
-1. Implement `importLines(List<String> lines, List<String> errors)`: one loop, and the try/catch INSIDE the loop - that placement is the whole resilience story. A good line adds its count to the sku's total (`getOrDefault` from the maps module helps); a bad line adds its exception message to `errors` and the loop keeps going.
-2. Implement `importFile(Path file, List<String> errors)` with try-with-resources:
-   `try (BufferedReader reader = Files.newBufferedReader(file)) { ... }`.
-   Read every line with `readLine()` until it returns null, collect the lines, delegate to `importLines`. The reader now closes itself on every path, normal or exceptional - that is what the parentheses buy, with no `finally` to forget.
+1. Implement `importLines(List<String> lines, List<String> errors)` with one loop, and put the try/catch INSIDE the loop. That placement is the whole resilience story.
+   - A good line adds its count to that sku's total. `getOrDefault`, from the maps module, helps here.
+   - A bad line adds its exception message to `errors`, and the loop keeps going.
+2. Implement `importFile(Path file, List<String> errors)` with try-with-resources: `try (BufferedReader reader = Files.newBufferedReader(file)) { ... }`.
+   Read every line with `readLine()` until it returns null, collect the lines, and hand them to `importLines`.
+   The reader now closes itself on every path, normal or exceptional. That is what the parentheses buy, with no `finally` block to forget.
 3. Let `IOException` stay declared: a missing file is the caller's decision, not something the importer can repair. The tests check that a missing file still throws it.
-4. Done when no line starting with `Task 3` appears.
 
 ### Task 4: tell the failures apart
 
-1. Implement `outcome(ImportAction action)` with one try and three catch blocks, most specific first: `ImportException`, then `NumberFormatException`, then `Exception`, returning the exact texts the comment shows.
-2. Try reversing the order: the compiler rejects a chain where the broad `Exception` comes first, because the narrower catches below it could never run. That compiler error is the ordering rule enforced.
-3. Done when no line starting with `Task 4` appears.
+1. Implement `outcome(ImportAction action)` with one try and three catch blocks, most specific first: `ImportException`, then `NumberFormatException`, then `Exception`. Return the exact texts the comment shows.
+2. Try reversing the order. The compiler rejects a chain with the broad `Exception` first, because the narrower catches below it could never run. That compiler error is the ordering rule being enforced.
+3. If you see `exception ImportException is never thrown in body of corresponding try statement`, the compiler is tracking checked exceptions. That catch block can only exist where some call in the try declares `throws ImportException`.
 
 ### Task 5: log it right
 
-1. Implement `logSummary`: one `logger.info("imported <okCount> skus from <fileName>")` - routine success is INFO - then one `logger.warning(...)` per collected error: a survived bad line is a warning, not a crash.
-2. Implement `logCrash`: `logger.log(Level.SEVERE, "import failed", crash)` - one call that carries the message AND the exception object, so the log keeps the whole stack trace. Logging `crash.toString()` would throw the trace away.
-3. Logs are for operators: never log passwords, tokens or whole customer records - here the summary carries only counts, file names and line numbers.
-4. Done when no line starting with `Task 5` appears and the whole run prints nothing.
+1. Implement `logSummary`:
+   - one `logger.info("imported <okCount> skus from <fileName>")`, because routine success is INFO;
+   - then one `logger.warning(...)` per collected error, because a bad line the importer survived is a warning, not a crash.
+2. Implement `logCrash`: `logger.log(Level.SEVERE, "import failed", crash)`.
+   This one call carries the message AND the exception object, so the log keeps the whole stack trace. Logging `crash.toString()` would throw the trace away.
+3. Logs are for operators. Never log passwords, tokens or whole customer records; here the summary carries only counts, file names and line numbers.
 
-### Read one stack trace
+### Optional: read one stack trace
 
-Break your own importer once on purpose. First, from the `starter` folder, run the program with the two commands at the end of the Test section and see it import `stock.csv`; then, in `main`, change the fixture path to `stock-typo.csv` and run the same two commands again.
-Read the trace top-down: the exception type (`NoSuchFileException`), its message (the path), and the first line that names YOUR file (`StockImporter.importFile`, where your code opened the file), then the line below it (`StockImporter.main`, which passed in the wrong path).
-That first-own-line habit is how every later failure in this course gets found. Undo the change afterwards.
+Break your own importer once, on purpose.
+1. From `starter`, run the program with the two commands under **Run the program** below, and watch it import `stock.csv`.
+2. In `main`, change the fixture path to `stock-typo.csv`, and run the same two commands again.
+3. Read the trace from the top down:
+   - the exception type, `NoSuchFileException`;
+   - its message, the path;
+   - the first line that names YOUR code, `StockImporter.importFile`, where your code opened the file;
+   - the line below it, `StockImporter.main`, which passed in the wrong path.
+4. That first-own-line habit is how you will find every later failure in this course. Undo the change afterwards.
+
+### About the test results
+
+A passing run shows the importer behaves correctly.
+It does not check which Java constructs your code uses, so compare your code with each task's steps yourself.
 
 ## Using an AI assistant
 
-If you use an AI assistant in this lab, ask it to explain, not to answer: "explain this Caused by: chain" teaches you stack traces; "write the importer for me" does not.
-Verify any explanation against a test run before you trust it.
+If you use an AI assistant, ask it to explain, not to answer.
+"Explain this Caused by: chain" teaches you stack traces; "write the importer for me" does not.
+Check any explanation with a test run before you trust it.
 
-## Test
+## Run the program
 
-The one test command, run from the `starter` folder, is:
-
-```
-mvn -q -o test
-```
-
-- Before you start, all five tests fail, and Maven ends with `Tests run: 5, Failures: 5`.
-- Each test lists what behavior was wrong. A passing run shows the importer behaves correctly; it does not check which Java constructs your code uses, so compare your code with each task's steps yourself.
-- If your code does not compile, Maven prints `COMPILATION ERROR` with the file, then `[line,column]`, then the compiler's message. Fix that line and run the test again.
-
-You can also run the importer itself on the broken fixture file:
+The importer runs on the broken fixture file. From `starter`:
 
 ```
 mvn -q -o compile
 java -cp target/classes importer.StockImporter
 ```
 
-## Expected output
-
-When every task is complete, `mvn -q -o test` prints nothing and exits with status 0.
-`expected/test-summary.txt` shows the full expected result, including what the program prints for the fixture file.
-
-## Offline note
-
-Only the setup step uses the network.
-The test command uses `-o` (offline), so it never downloads anything.
-If it reports that an artifact is missing from the local repository, run the setup step once more while online.
-
-## Cleanup
-
-The lab writes only the `starter/target` folder (compiled classes and test reports). Delete it from the `starter` folder:
-
-- macOS and Linux: `rm -rf target`
-- Windows PowerShell: `Remove-Item -Recurse -Force target`
-
-The JUnit and plugin downloads stay in your local Maven repository (`~/.m2/repository` by default) so later Java labs can reuse them.
-
-`starter/.gitignore` already keeps Maven's `starter/target` folder out of Git. Your editor and operating system may also create local files in the lab's root folder, such as `.idea/`, `.vscode/` or `.DS_Store`; they are not part of the lab, so if `git status` lists any of them, add them to a `.gitignore` file in the lab's root folder instead of committing them.
+`expected/test-summary.txt` shows the finished result, including what the program prints for the fixture file.
 
 ## Troubleshooting
 
+- **`there is no POM in this directory`.** The terminal is not in `starter`. From the lab folder, run `cd starter` and try again.
+- **`NoSuchFileException` naming `stock.csv` (when you did not change the path).** The program and tests read `../fixtures/stock.csv` relative to `starter`, so run them from `starter`. Keep the `Path.of("..", "fixtures", ...)` form. If a run started from your editor cannot find the file, use the terminal command instead.
+- **`COMPILATION ERROR`.** Your code does not compile yet. Maven names the file, then `[line,column]`, then the problem. Fix that line and run the tests again.
 - **`mvn: command not found`, or `'mvn' is not recognized`.** Maven's `bin` folder is not on your `PATH`. Add it, then open a new terminal.
-- **`mvn -v` shows a Java version other than 25.** Maven uses the JDK named by `JAVA_HOME` when it is set, otherwise the `java` on your `PATH`. Set `JAVA_HOME` to your JDK 25 folder, or unset it, then open a new terminal.
-- **`release version 25 not supported`.** Maven is running on an older JDK. Fix it as in the previous item.
-- **`Cannot access central in offline mode`, or a missing artifact.** The setup step has not completed. Run `mvn -q dependency:go-offline` once while online.
-- **`exception ImportException is never thrown in body of corresponding try statement`.** The compiler tracks checked exceptions: that catch block can only exist where some call in the try actually declares `throws ImportException`.
-- **`unreported exception ImportException; must be caught or declared to be thrown`.** That is the checked contract working: either catch it (Task 3) or add `throws ImportException` (Task 2).
-- **`NoSuchFileException` naming `stock.csv`, or Task 3 reads the wrong file.** The tests run from `starter/`, and the fixture path is `../fixtures/stock.csv` relative to it; keep the `Path.of("..", "fixtures", ...)` form. If a run started from your editor cannot find the fixture, its working directory is not `starter`: set that run's working directory to `starter`, or use the terminal command.
+- **`mvn -v` shows a Java version other than 25, or you see `release version 25 not supported`.** Maven uses the JDK named by `JAVA_HOME` when it is set, otherwise the `java` on your `PATH`. Set `JAVA_HOME` to your JDK 25 folder, or unset it, then open a new terminal. Check with `java -version` and `mvn -v`.
+- **`Cannot access central in offline mode`, or a missing artifact.** The setup step has not finished. Run `mvn -q dependency:go-offline` once while online.
+
+## Cleanup (optional)
+
+Maven writes only the `starter/target` folder, and Git already ignores it.
+To delete it, run `rm -rf target` from `starter`. In Windows PowerShell, run `Remove-Item -Recurse -Force target`.
