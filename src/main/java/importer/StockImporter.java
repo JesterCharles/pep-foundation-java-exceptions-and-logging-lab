@@ -15,7 +15,7 @@ import java.util.logging.Logger;
  * importer must import every good line, report every bad one, close the file
  * whatever happens, and log what it did. Complete the tasks marked TODO.
  * The public tests feed it good and broken data and check only the results.
- * The README lists the steps for every task. main is complete: it imports
+ * The lab instructions list the steps for every task. main is complete: it imports
  * fixtures/stock.csv and prints what happened.
  */
 public class StockImporter {
@@ -81,7 +81,7 @@ public class StockImporter {
 
     public static void main(String[] args) throws IOException {
         java.util.ArrayList<String> errors = new java.util.ArrayList<>();
-        HashMap<String, Integer> stock = importFile(Path.of("..", "fixtures", "stock.csv"), errors);
+        HashMap<String, Integer> stock = importFile(Path.of("fixtures", "stock.csv"), errors);
         if (stock == null) {
             System.out.println("importFile is not implemented yet");
             return;

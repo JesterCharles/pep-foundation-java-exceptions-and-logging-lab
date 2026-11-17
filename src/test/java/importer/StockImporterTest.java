@@ -77,7 +77,7 @@ class StockImporterTest {
                         errors, "Task 3: every bad line is reported with its message"));
         ArrayList<String> fileErrors = new ArrayList<>();
         HashMap<String, Integer> fromFile =
-                StockImporter.importFile(Path.of("..", "fixtures", "stock.csv"), fileErrors);
+                StockImporter.importFile(Path.of("fixtures", "stock.csv"), fileErrors);
         assertNotNull(fromFile, "Task 3: importFile must return a map, not null");
         assertAll(
                 () -> assertEquals(stock, fromFile,
@@ -85,7 +85,7 @@ class StockImporterTest {
                 () -> assertEquals(2, fileErrors.size(),
                         "Task 3: the fixture file contains exactly two bad lines"));
         assertThrows(java.io.IOException.class,
-                () -> StockImporter.importFile(Path.of("..", "fixtures", "no-such-file.csv"), new ArrayList<>()),
+                () -> StockImporter.importFile(Path.of("fixtures", "no-such-file.csv"), new ArrayList<>()),
                 "Task 3: a missing file stays a checked IOException for the caller");
     }
 
