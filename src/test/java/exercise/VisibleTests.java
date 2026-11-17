@@ -20,9 +20,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 /**
- * Public tests for the Exceptions and Logging lab. Each test feeds the
+ * Public tests for the Exceptions and Logging lab, one per task. Each test feeds the
  * importer good and broken data and checks only the visible results:
  * return values, thrown exceptions, collected errors and log records.
+ * Restored over the learner's checkout at grade time.
  */
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class VisibleTests {
@@ -45,7 +46,6 @@ class VisibleTests {
     @Test
     void task2ParseCount() throws Exception {
         assertEquals(3, StockImporter.parseCount("tea,3", 1), "Task 2: parseCount(\"tea,3\", 1)");
-        assertEquals(14, StockImporter.parseCount("pen,14", 4), "Task 2: parseCount(\"pen,14\", 4)");
         ImportException noComma = assertThrows(ImportException.class,
                 () -> StockImporter.parseCount("candle", 5),
                 "Task 2: a line without a comma must fail with ImportException");
@@ -54,11 +54,8 @@ class VisibleTests {
         ImportException notANumber = assertThrows(ImportException.class,
                 () -> StockImporter.parseCount("notebook,abc", 3),
                 "Task 2: a count that is not a number must fail with ImportException");
-        assertAll(
-                () -> assertEquals("line 3: count is not a number", notANumber.getMessage(),
-                        "Task 2: the message names the line number"),
-                () -> assertInstanceOf(NumberFormatException.class, notANumber.getCause(),
-                        "Task 2: wrap the NumberFormatException as the cause; never lose it"));
+        assertInstanceOf(NumberFormatException.class, notANumber.getCause(),
+                "Task 2: wrap the NumberFormatException as the cause; never lose it");
     }
 
     @Test
@@ -72,21 +69,13 @@ class VisibleTests {
                 () -> assertEquals(9, stock.get("mug"), "Task 3: mug is imported"),
                 () -> assertEquals(14, stock.get("pen"),
                         "Task 3: a bad line must not stop the lines after it"),
-                () -> assertEquals(3, stock.size(), "Task 3: only good skus end up in the map"),
                 () -> assertEquals(List.of("line 3: count is not a number", "line 5: expected sku,count"),
                         errors, "Task 3: every bad line is reported with its message"));
         ArrayList<String> fileErrors = new ArrayList<>();
         HashMap<String, Integer> fromFile =
                 StockImporter.importFile(Path.of("fixtures", "stock.csv"), fileErrors);
         assertNotNull(fromFile, "Task 3: importFile must return a map, not null");
-        assertAll(
-                () -> assertEquals(stock, fromFile,
-                        "Task 3: importing the fixture file gives the same stock"),
-                () -> assertEquals(2, fileErrors.size(),
-                        "Task 3: the fixture file contains exactly two bad lines"));
-        assertThrows(java.io.IOException.class,
-                () -> StockImporter.importFile(Path.of("fixtures", "no-such-file.csv"), new ArrayList<>()),
-                "Task 3: a missing file stays a checked IOException for the caller");
+        assertEquals(stock, fromFile, "Task 3: importing the fixture file gives the same stock");
     }
 
     @Test
@@ -101,12 +90,7 @@ class VisibleTests {
                         "Task 4: ImportException is the most specific catch"),
                 () -> assertEquals("bad number: For input string: \"x\"",
                         StockImporter.outcome(() -> Integer.parseInt("x")),
-                        "Task 4: NumberFormatException has its own catch"),
-                () -> assertEquals("unexpected: boom",
-                        StockImporter.outcome(() -> {
-                            throw new IllegalStateException("boom");
-                        }),
-                        "Task 4: anything else lands in the broadest catch, last"));
+                        "Task 4: NumberFormatException has its own catch"));
     }
 
     @Test
@@ -143,12 +127,6 @@ class VisibleTests {
         IllegalStateException crash = new IllegalStateException("disk gone");
         StockImporter.logCrash(logger, crash);
         assertEquals(1, records.size(), "Task 5: logCrash logs exactly one record");
-        assertAll(
-                () -> assertEquals(Level.SEVERE, records.get(0).getLevel(),
-                        "Task 5: a crash is SEVERE"),
-                () -> assertEquals("import failed", records.get(0).getMessage(),
-                        "Task 5: the crash message"),
-                () -> assertEquals(crash, records.get(0).getThrown(),
-                        "Task 5: log the exception object itself, so the stack trace survives"));
+        assertEquals(Level.SEVERE, records.get(0).getLevel(), "Task 5: a crash is SEVERE");
     }
 }

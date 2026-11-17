@@ -15,15 +15,16 @@ You practise custom exceptions, wrapping causes, try-with-resources, catch order
 1. Open the lab project. The files you edit are in `src/main/java/exercise/`; the checklist below names them.
 2. Select **Run Tests** before you change anything.
 
-   **All 5 tests fail at first. That is expected: the TODOs are not done yet.**
+   **All 5 visible tests fail at first. That is expected: the TODOs are not done yet.**
    Every failure message starts with its task number, such as `Task 1:`.
 3. Work through the checklist below in order. After each task, select **Run Tests** again and read the remaining `Task N:` messages.
-4. **You are finished when all 5 tests pass.** Then select **Submit**.
+4. **You are finished when all 5 visible tests pass.** Then select **Submit**.
+   Submitting also runs held-out tests you can't see.
 
 ```
-OPEN project -> RUN TESTS: 5 fail (expected)
+OPEN project -> RUN TESTS: 5 visible tests fail (expected)
   -> READ the "Task N:" messages -> EDIT the next TODO -> RUN TESTS again
-  -> repeat for Tasks 1-5 -> SUBMIT when all 5 tests pass
+  -> repeat for Tasks 1-5 -> SUBMIT when all 5 visible tests pass
 ```
 
 In words: open the project, run the tests, read which tasks fail, complete one task's TODO, run the tests again, and submit when they all pass.
@@ -42,12 +43,13 @@ The files are in `src/main/java/exercise/`, and each task is marked with a `TODO
 A task is done when no failure message starts with its number.
 Edit only `ImportException.java` and `StockImporter.java`.
 - `fixtures/stock.csv` is the broken sample file the importer must survive, exactly as shipped.
-- The tests in `src/test/java/exercise/` are restored to their original state before your work is graded, so changes to them do not count. Leave the build file `pom.xml` and `expected/test-summary.txt` as they are.
+- The tests in `src/test/java/exercise/` are restored to their original state before your work is graded, so changes to them do not count. Leave the build file `pom.xml` as it is.
 
 ## Task steps
 
 Read `fixtures/stock.csv` first: lines 3 and 5 are the broken ones.
 The tests feed the importer good and broken data, and check only the visible results.
+Run Tests runs the visible tests. Submit also runs held-out tests you can't see: they try more inputs and edge cases, so make each method do everything its comment describes, not only what the visible tests try.
 
 ### Task 1: the importer's own exception
 
@@ -132,7 +134,29 @@ mvn -q compile
 java -cp target/classes exercise.StockImporter
 ```
 
-`expected/test-summary.txt` shows the finished result, including what the program prints for the fixture file.
+When every task is done, it prints:
+
+```
+tea=5 mug=9 pen=14
+errors=2
+  line 3: count is not a number
+  line 5: expected sku,count
+```
+
+then the three log records from `logSummary`. Each record is two lines: a timestamp line naming `exercise.StockImporter logSummary`, then the record itself (your timestamps will differ):
+
+```
+INFO: imported 3 skus from stock.csv
+WARNING: line 3: count is not a number
+WARNING: line 5: expected sku,count
+```
+
+and finally:
+
+```
+outcome ok: ok
+outcome bad: import error: line 1: count is not a number
+```
 
 ## Troubleshooting
 
