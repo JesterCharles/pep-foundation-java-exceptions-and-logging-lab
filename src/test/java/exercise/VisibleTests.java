@@ -1,4 +1,4 @@
-package importer;
+package exercise;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.TestMethodOrder;
  * return values, thrown exceptions, collected errors and log records.
  */
 @TestMethodOrder(MethodOrderer.MethodName.class)
-class StockImporterTest {
+class VisibleTests {
 
     @Test
     void task1Exception() {

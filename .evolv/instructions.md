@@ -1,7 +1,7 @@
 # Exceptions and Logging lab: a resilient stock importer
 
 A shop receives stock files with lines like `tea,3`, and real files arrive broken: counts that are not numbers, and lines without a comma.
-You make the stock importer survive them, in five linked tasks in the package `importer`. When you finish, it:
+You make the stock importer survive them, in five linked tasks in the package `exercise`. When you finish, it:
 - imports every good line;
 - reports every bad line with its line number;
 - closes the file on every path;
@@ -12,7 +12,7 @@ You practise custom exceptions, wrapping causes, try-with-resources, catch order
 
 ## Quick start
 
-1. Open the lab project. The files you edit are in `src/main/java/importer/`; the checklist below names them.
+1. Open the lab project. The files you edit are in `src/main/java/exercise/`; the checklist below names them.
 2. Select **Run Tests** before you change anything.
 
    **All 5 tests fail at first. That is expected: the TODOs are not done yet.**
@@ -30,7 +30,7 @@ In words: open the project, run the tests, read which tasks fail, complete one t
 
 ## Checklist
 
-The files are in `src/main/java/importer/`, and each task is marked with a `TODO` comment:
+The files are in `src/main/java/exercise/`, and each task is marked with a `TODO` comment:
 
 - [ ] Task 1: `ImportException.java`, both constructors (a checked exception of your own)
 - [ ] Task 2: `StockImporter.java`, `parseCount` (throwing and wrapping exceptions)
@@ -42,7 +42,7 @@ The files are in `src/main/java/importer/`, and each task is marked with a `TODO
 A task is done when no failure message starts with its number.
 Edit only `ImportException.java` and `StockImporter.java`.
 - `fixtures/stock.csv` is the broken sample file the importer must survive, exactly as shipped.
-- The tests in `src/test/java/importer/` are restored to their original state before your work is graded, so changes to them do not count. Leave the build file `pom.xml` and `expected/test-summary.txt` as they are.
+- The tests in `src/test/java/exercise/` are restored to their original state before your work is graded, so changes to them do not count. Leave the build file `pom.xml` and `expected/test-summary.txt` as they are.
 
 ## Task steps
 
@@ -129,7 +129,7 @@ The importer runs on the broken fixture file. In a terminal, from the project fo
 
 ```
 mvn -q compile
-java -cp target/classes importer.StockImporter
+java -cp target/classes exercise.StockImporter
 ```
 
 `expected/test-summary.txt` shows the finished result, including what the program prints for the fixture file.

@@ -7,16 +7,16 @@ From a terminal, the same check is:
 Result: all 5 tests pass.
 In a terminal, quiet mode (-q) prints only problems, so no output means every test passed.
 
-Test report, target/surefire-reports/importer.StockImporterTest.txt, contains the line:
+Test report, target/surefire-reports/exercise.VisibleTests.txt, contains the line:
   Tests run: 5, Failures: 0, Errors: 0, Skipped: 0
 
-Program output, from java -cp target/classes importer.StockImporter run in the project folder after the tests:
+Program output, from java -cp target/classes exercise.StockImporter run in the project folder after the tests:
   tea=5 mug=9 pen=14
   errors=2
     line 3: count is not a number
     line 5: expected sku,count
 then the three log records from logSummary - each is two lines, a timestamp
-line naming importer.StockImporter logSummary and the record itself (your
+line naming exercise.StockImporter logSummary and the record itself (your
 timestamps will differ):
   INFO: imported 3 skus from stock.csv
   WARNING: line 3: count is not a number
