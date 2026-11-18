@@ -1,7 +1,7 @@
 # Exceptions and Logging lab: a resilient stock importer
 
 A shop receives stock files with lines like `tea,3`, and real files arrive broken: counts that are not numbers, and lines without a comma.
-You make the stock importer survive them, in five linked tasks in the package `importer`. When you finish, it:
+You make the stock importer survive them, in five linked tasks in the package `exercise`. When you finish, it:
 - imports every good line;
 - reports every bad line with its line number;
 - closes the file on every path;
@@ -12,43 +12,26 @@ You practise custom exceptions, wrapping causes, try-with-resources, catch order
 
 ## Quick start
 
-The lab needs JDK 25 and Apache Maven 3.9 or later in the terminal. Troubleshooting shows how to check.
+1. Open the lab project. The files you edit are in `src/main/java/exercise/`; the checklist below names them.
+2. Select **Run Tests** before you change anything.
 
-1. Open the lab project you were given in VS Code, then open its integrated terminal: **Terminal > New Terminal**.
-2. Go into the project folder. Every command in this lab runs there:
-
-   ```
-   cd starter
-   ```
-
-3. Before the first test run, download the lab's libraries once. This needs the internet, and prints nothing when it works:
-
-   ```
-   mvn -q dependency:go-offline
-   ```
-
-4. Run the tests before you change anything:
-
-   ```
-   mvn -q -o test
-   ```
-
-   **All 5 tests fail at first. That is expected: the TODOs are not done yet.**
-   The output ends with `Tests run: 5, Failures: 5`, and every failure line starts with its task number, such as `Task 1:`.
-5. Work through the checklist below in order. After each task, run `mvn -q -o test` again and read the remaining `Task N:` lines.
-6. **You are finished when `mvn -q -o test` prints nothing at all.**
+   **All 5 visible tests fail at first. That is expected: the TODOs are not done yet.**
+   Every failure message starts with its task number, such as `Task 1:`.
+3. Work through the checklist below in order. After each task, select **Run Tests** again and read the remaining `Task N:` messages.
+4. **You are finished when all 5 visible tests pass.** Then select **Submit**.
+   Submitting also runs held-out tests you can't see.
 
 ```
-OPEN project -> cd starter -> setup (once) -> RUN tests: 5 fail (expected)
-  -> READ the "Task N:" lines -> EDIT the next TODO -> RUN tests again
-  -> repeat for Tasks 1-5 -> STOP when the test run prints nothing
+OPEN project -> RUN TESTS: 5 visible tests fail (expected)
+  -> READ the "Task N:" messages -> EDIT the next TODO -> RUN TESTS again
+  -> repeat for Tasks 1-5 -> SUBMIT when all 5 visible tests pass
 ```
 
-In words: open the project, run the tests, read which tasks fail, complete one task's TODO, run the tests again, and stop when they print nothing.
+In words: open the project, run the tests, read which tasks fail, complete one task's TODO, run the tests again, and submit when they all pass.
 
 ## Checklist
 
-The files are in `starter/src/main/java/importer/`, and each task is marked with a `TODO` comment:
+The files are in `src/main/java/exercise/`, and each task is marked with a `TODO` comment:
 
 - [ ] Task 1: `ImportException.java`, both constructors (a checked exception of your own)
 - [ ] Task 2: `StockImporter.java`, `parseCount` (throwing and wrapping exceptions)
@@ -57,15 +40,16 @@ The files are in `starter/src/main/java/importer/`, and each task is marked with
 - [ ] Task 5: `StockImporter.java`, `logSummary` and `logCrash` (logging levels)
 - [ ] Optional, after the tests pass: read one stack trace on purpose
 
-A task is done when no failure line starts with its number.
+A task is done when no failure message starts with its number.
 Edit only `ImportException.java` and `StockImporter.java`.
 - `fixtures/stock.csv` is the broken sample file the importer must survive, exactly as shipped.
-- The tests in `tests/importer/`, the build file `starter/pom.xml` and `expected/test-summary.txt` stay as they are.
+- The tests in `src/test/java/exercise/` are restored to their original state before your work is graded, so changes to them do not count. Leave the build file `pom.xml` as it is.
 
 ## Task steps
 
 Read `fixtures/stock.csv` first: lines 3 and 5 are the broken ones.
 The tests feed the importer good and broken data, and check only the visible results.
+Run Tests runs the visible tests. Submit also runs held-out tests you can't see: they try more inputs and edge cases, so make each method do everything its comment describes, not only what the visible tests try.
 
 ### Task 1: the importer's own exception
 
@@ -73,7 +57,7 @@ The tests feed the importer good and broken data, and check only the visible res
    A broken stock file is an expected failure, and the compiler makes every caller plan for it. An unchecked `RuntimeException` is the choice for programming errors instead.
 2. Complete both constructors: `super(message)` in the first, `super(message, cause)` in the second.
    The second keeps the low-level exception, so it appears in every later stack trace.
-3. While it is wrong, you see lines such as `Task 1: the message constructor must hand the message to super(...)`.
+3. While it is wrong, you see messages such as `Task 1: the message constructor must hand the message to super(...)`.
 
 ### Task 2: parse one line, wrap what breaks
 
@@ -121,7 +105,7 @@ If you see `exception ImportException is never thrown in body of corresponding t
 ### Optional: read one stack trace
 
 Break your own importer once, on purpose.
-1. From `starter`, run the program with the two commands under **Run the program** below, and watch it import `stock.csv`.
+1. Run the program with the two commands under **Run the program** below, and watch it import `stock.csv`.
 2. In `main`, change the fixture path to `stock-typo.csv`, and run the same two commands again.
 3. Read the trace from the top down:
    - the exception type, `NoSuchFileException`;
@@ -141,27 +125,40 @@ If you use an AI assistant, ask it to explain, not to answer.
 "Explain this Caused by: chain" teaches you stack traces; "write the importer for me" does not.
 Check any explanation with a test run before you trust it.
 
-## Run the program
+## Run the program (optional)
 
-The importer runs on the broken fixture file. From `starter`:
+The importer runs on the broken fixture file. In a terminal, from the project folder:
 
 ```
-mvn -q -o compile
-java -cp target/classes importer.StockImporter
+mvn -q compile
+java -cp target/classes exercise.StockImporter
 ```
 
-`expected/test-summary.txt` shows the finished result, including what the program prints for the fixture file.
+When every task is done, it prints:
+
+```
+tea=5 mug=9 pen=14
+errors=2
+  line 3: count is not a number
+  line 5: expected sku,count
+```
+
+then the three log records from `logSummary`. Each record is two lines: a timestamp line naming `exercise.StockImporter logSummary`, then the record itself (your timestamps will differ):
+
+```
+INFO: imported 3 skus from stock.csv
+WARNING: line 3: count is not a number
+WARNING: line 5: expected sku,count
+```
+
+and finally:
+
+```
+outcome ok: ok
+outcome bad: import error: line 1: count is not a number
+```
 
 ## Troubleshooting
 
-- **`there is no POM in this directory`.** The terminal is not in `starter`. From the lab folder, run `cd starter` and try again.
-- **`NoSuchFileException` naming `stock.csv` (when you did not change the path).** The program and tests read `../fixtures/stock.csv` relative to `starter`, so run them from `starter`. Keep the `Path.of("..", "fixtures", ...)` form. If a run started from your editor cannot find the file, use the terminal command instead.
+- **`NoSuchFileException` naming `stock.csv` (when you did not change the path).** The program and tests read `fixtures/stock.csv` relative to the project folder, so run them from there. Keep the `Path.of("fixtures", ...)` form. If a run started from your editor cannot find the file, use **Run Tests** or the terminal command instead.
 - **`COMPILATION ERROR`.** Your code does not compile yet. Maven names the file, then `[line,column]`, then the problem. Fix that line and run the tests again.
-- **`mvn: command not found`, or `'mvn' is not recognized`.** Maven's `bin` folder is not on your `PATH`. Add it, then open a new terminal.
-- **`mvn -v` shows a Java version other than 25, or you see `release version 25 not supported`.** Maven uses the JDK named by `JAVA_HOME` when it is set, otherwise the `java` on your `PATH`. Set `JAVA_HOME` to your JDK 25 folder, or unset it, then open a new terminal. Check with `java -version` and `mvn -v`.
-- **`Cannot access central in offline mode`, or a missing artifact.** The setup step has not finished. Run `mvn -q dependency:go-offline` once while online.
-
-## Cleanup (optional)
-
-Maven writes only the `starter/target` folder, and Git already ignores it.
-To delete it, run `rm -rf target` from `starter`. In Windows PowerShell, run `Remove-Item -Recurse -Force target`.

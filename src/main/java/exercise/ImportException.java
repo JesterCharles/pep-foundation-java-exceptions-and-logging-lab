@@ -1,4 +1,4 @@
-package importer;
+package exercise;
 
 /**
  * Task 1: the importer's own exception.
